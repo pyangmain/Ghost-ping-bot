@@ -6,11 +6,11 @@ app = Flask('')
 
 @app.route('/')
 def home():
-  return "Hello. I am alive!"
+  return "Server is still up"
 
 def run():
   app.run(host='0.0.0.0', port=8080)
 
-def keep_alive():
+def pingBot():
   t = Thread(target=run)
   t.start()
