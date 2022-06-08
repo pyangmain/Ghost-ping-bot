@@ -25,19 +25,28 @@ async def on_message_delete(message):
       if ghostPingMessageCopy.find(">") != -1:
         userID = ghostPingMessageCopy[:ghostPingMessageCopy.index('>')]
         #checking that the userID string is parsable to an int(i.e., is valid)
-        if(not userID.isdigit()):
-          continue
-        #for all members in the author's guild(server)
-        for member in message.author.guild.members:
-          if int(userID) == member.id:
-            ghostPinged = True
-            #replace the actual ping in the message to a dummy ping 
-            ghostPingMessage = ghostPingMessage.replace("<@" + userID + ">", "@" + member.name)
+        if(userID.isdigit()):
+          #for all members in the author's guild(server)
+          for member in message.author.guild.members:
+            if int(userID) == member.id:
+              ghostPinged = True
+              #replace the actual ping in the message to a dummy ping 
+              ghostPingMessage = ghostPingMessage.replace("<@" + userID + ">", "@" + member.name)
+        #checking if the inner id is a role ping
+        else:
+          if(userID.find("&") != -1):
+            userID = userID[userID.index('&') + 1:]
+            if not userID.isdigit(): 
+              break
+            for role in message.author.guild.roles:
+              if(role.id == int(userID)):
+                ghostPinged = True
+                #replace the actual ping in the message to a dummy ping 
+                ghostPingMessage = ghostPingMessage.replace("<@&" + userID + ">", "@" + role.name)
       else: 
         break
     if(ghostPinged):
       await message.channel.send("<@" + str(message.author.id) + "> just sent a ghost ping with message:\n" + ghostPingMessage)
-  #if the deleted message is a reply and is deleted, we assume that it has @ on, (there is no way to check if a reply has @ on in discord.py to my knowledge) and declare it a ghost ping
   if message.reference:
     if message.reference.resolved:
       ghostPingMessage = message.content
@@ -57,7 +66,7 @@ async def on_message_delete(message):
         else: 
           break
       await message.channel.send("<@" + str(message.author.id) + "> just sent a ghost ping to @" + message.reference.resolved.author.name + " with message:\n"  + ghostPingMessage )
-#on message edit, if the number of @'s in the message before is not equal to the number of @'s in the message after the edit, it is deemed a ghost ping, and the bot is alerted   
+    
 @client.event
 async def on_message_edit(before, after):
   if len(before.mentions) != len(after.mentions):
